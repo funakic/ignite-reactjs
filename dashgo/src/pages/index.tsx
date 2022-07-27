@@ -3,6 +3,10 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Input } from "../components/Form/Input";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
+import { GetServerSideProps } from "next";
+import { parseCookies } from 'nookies';
 
 type SignInFormData = {
   email: string;
@@ -20,10 +24,10 @@ export default function SignIn() {
   })
   const { errors } = formState;
 
-  const handleSignIn: SubmitHandler<SignInFormData> = async (values) => {
-    await new Promise(resolve => setTimeout(resolve, 2000));
+  const { signIn } = useContext(AuthContext);
 
-    console.log(values);
+  const handleSignIn: SubmitHandler<SignInFormData> = async (values) => {
+    await signIn(values);
   }
 
   return (
@@ -72,4 +76,21 @@ export default function SignIn() {
       </Flex>
     </Flex>
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const cookies = parseCookies(ctx);
+
+  if (cookies['dashgo.token']) {
+    return {
+      redirect: {
+        destination: '/dashboard',
+        permanent: false,
+      }
+    }
+  }
+
+  return {
+    props: {}
+  }
 }
